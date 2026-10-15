@@ -53,7 +53,7 @@ IDs are stored as `VARCHAR(255)`. The append-only journal blocks updates, delete
 and truncation. Its movement enum currently supports `RESERVE` and `RELEASE`;
 `RECONCILE` requires a future migration.
 
-## Authentication
+## Authentication, Seeding data, FX rates
 
 Copy `.env.example` to `.env` and set a local `JWT_SECRET`, `CLIENT_ID`, and
 `CLIENT_SECRET`. Start the database and app, then request a development token:
@@ -73,36 +73,24 @@ with a $10,000,000 limit (1,000,000,000 cents) and prints its ID. Check its
 capacity at `GET /programs/00000000-0000-4000-8000-000000000001/capacity` with
 the bearer token.
 
+Create a reservation using the same token:
+
+```bash
+$ curl -X POST http://localhost:3000/programs/00000000-0000-4000-8000-000000000001/reservations \
+	-H "Authorization: Bearer $TOKEN" \
+	-H "Content-Type: application/json" \
+	-d '{"invoiceId":"invoice-001","amount":"125000","currency":"EUR"}'
+```
+
+The bundled FX provider uses fixed example rates, not live market quotes. Replace
+the `FX_RATE_PROVIDER` binding with an external provider before production use.
+
 For production, set `JWT_MODE=jwks`, `JWT_JWKS_URI`, `JWT_ISSUER`, and
 `JWT_AUDIENCE`. Local token issuance is disabled in this mode, and the guard
 accepts only RS256 tokens verified against the configured JWKS.
 
-## Compile and run the project
+## Swagger
 
 The Swagger UI is available at `http://localhost:3000/api` while the app is running.
 Use **Authorize** to enter a bearer token for protected endpoints. The OpenAPI document
 is available at `http://localhost:3000/api-json`.
-
-```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
-```

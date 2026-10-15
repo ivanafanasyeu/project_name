@@ -11,11 +11,7 @@ import {
   bigintStringTransformer,
   type BigintString,
 } from './bigint-string.transformer.js';
-
-export enum ReservationStatus {
-  RESERVED = 'RESERVED',
-  RELEASED = 'RELEASED',
-}
+import { ReservationStatus } from '../reservations/reservation-status.js';
 
 @Unique('UQ_reservations_program_invoice', ['programId', 'invoiceId'])
 @Entity({ name: 'reservations' })
