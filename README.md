@@ -31,8 +31,27 @@ $ docker compose up -d
 The Nest app connects to `localhost:5432` using the `project_name` database and
 the `postgres` user/password by default. Override these with `DB_HOST`,
 `DB_PORT`, `DB_NAME`, `DB_USERNAME`, and `DB_PASSWORD`. Schema synchronization
-is disabled by default; set `DB_SYNCHRONIZE=true` for local development when
-using TypeORM entities.
+is disabled; schema changes are applied only through migrations. After starting
+PostgreSQL, apply pending migrations with:
+
+```bash
+$ pnpm run migration:run
+```
+
+Generate migrations against the running database after changing entity metadata:
+
+```bash
+$ pnpm run migration:generate -- src/database/migrations/DescribeChange
+```
+
+Generate and apply one logical table change at a time. CHECK constraints are
+intentionally defined in migrations rather than entity metadata, so review
+generated migrations to ensure they preserve constraints from earlier migrations.
+BIGINT monetary amounts and treasury sequence values are decimal strings in
+TypeScript. FX rates use `NUMERIC(30,12)` and are represented as strings. Invoice
+IDs are stored as `VARCHAR(255)`. The append-only journal blocks updates, deletes,
+and truncation. Its movement enum currently supports `RESERVE` and `RELEASE`;
+`RECONCILE` requires a future migration.
 
 ## Authentication
 
@@ -42,12 +61,17 @@ Copy `.env.example` to `.env` and set a local `JWT_SECRET`, `CLIENT_ID`, and
 ```bash
 $ cp .env.example .env
 $ make up-db
+$ pnpm run migration:run
+$ pnpm run seed
 $ pnpm run start:dev
 $ make token
 ```
 
 Use the printed token as a bearer token for `/auth/protected`; it requires the
-`api:read` scope. `/health` is public.
+`api:read` scope. `/health` is public. The seed command creates a USD program
+with a $10,000,000 limit (1,000,000,000 cents) and prints its ID. Check its
+capacity at `GET /programs/00000000-0000-4000-8000-000000000001/capacity` with
+the bearer token.
 
 For production, set `JWT_MODE=jwks`, `JWT_JWKS_URI`, `JWT_ISSUER`, and
 `JWT_AUDIENCE`. Local token issuance is disabled in this mode, and the guard

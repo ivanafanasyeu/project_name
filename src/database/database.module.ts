@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CapacityMovement } from './capacity-movement.entity.js';
+import { Program } from './program.entity.js';
+import { Reservation } from './reservation.entity.js';
 
 @Module({
   imports: [
@@ -14,8 +17,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         username: config.get<string>('DB_USERNAME', 'postgres'),
         password: config.get<string>('DB_PASSWORD', 'postgres'),
         database: config.get<string>('DB_NAME', 'project_name'),
-        autoLoadEntities: true,
-        synchronize: config.get('DB_SYNCHRONIZE') === 'true',
+        entities: [Program, Reservation, CapacityMovement],
+        synchronize: false,
       }),
     }),
   ],
