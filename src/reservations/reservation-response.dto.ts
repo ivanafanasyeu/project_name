@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ReservationStatus } from './reservation-status.js';
+import type { Reservation } from '../database/reservation.entity.js';
 
 export class ReservationResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -37,4 +38,18 @@ export class ReservationResponseDto {
 
   @ApiProperty({ type: String, format: 'date-time', nullable: true })
   releasedAt: string | null;
+
+  static fromEntity(reservation: Reservation): ReservationResponseDto {
+    return {
+      id: reservation.id,
+      programId: reservation.programId,
+      invoiceId: reservation.invoiceId,
+      originalAmountMinor: reservation.originalAmountMinor,
+      originalCurrency: reservation.originalCurrency,
+      reservedAmountMinor: reservation.reservedAmountMinor,
+      fxRate: reservation.fxRate,
+      status: reservation.status,
+      releasedAt: reservation.releasedAt?.toISOString() ?? null,
+    };
+  }
 }

@@ -40,7 +40,8 @@ export class ReservationsController {
   })
   @ApiNotFoundResponse({ description: 'Program not found' })
   @ApiConflictResponse({
-    description: 'Invoice already reserved with another payload',
+    description:
+      'Invoice is already released or already reserved with another payload',
   })
   @ApiUnprocessableEntityResponse({
     description: 'Unsupported currency or insufficient program capacity',
@@ -52,17 +53,24 @@ export class ReservationsController {
   ): Promise<ReservationResponseDto> {
     const result = await this.reservationsService.reserve(programId, request);
     response.status(result.created ? HttpStatus.CREATED : HttpStatus.OK);
-    const reservation = result.reservation;
-    return {
-      id: reservation.id,
-      programId: reservation.programId,
-      invoiceId: reservation.invoiceId,
-      originalAmountMinor: reservation.originalAmountMinor,
-      originalCurrency: reservation.originalCurrency,
-      reservedAmountMinor: reservation.reservedAmountMinor,
-      fxRate: reservation.fxRate,
-      status: reservation.status,
-      releasedAt: reservation.releasedAt?.toISOString() ?? null,
-    };
+    return ReservationResponseDto.fromEntity(result.reservation);
+  }
+
+  @Post(':invoiceId/release')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    description: 'Reservation released or release replayed',
+    type: ReservationResponseDto,
+  })
+  @ApiNotFoundResponse({ description: 'Reservation not found' })
+  async release(
+    @Param('programId', new ParseUUIDPipe()) programId: string,
+    @Param('invoiceId') invoiceId: string,
+  ): Promise<ReservationResponseDto> {
+    const reservation = await this.reservationsService.release(
+      programId,
+      invoiceId,
+    );
+    return ReservationResponseDto.fromEntity(reservation);
   }
 }

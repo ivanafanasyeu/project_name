@@ -45,6 +45,26 @@ export class ReservationPayloadConflictError extends DomainError {
   }
 }
 
+export class InvoiceAlreadyReleasedError extends DomainError {
+  constructor() {
+    super(
+      'This invoice reservation has already been released',
+      'INVOICE_ALREADY_RELEASED',
+      409,
+    );
+  }
+}
+
+export class ReservationNotFoundError extends DomainError {
+  constructor(programId: string, invoiceId: string) {
+    super(
+      `Reservation for program ${programId} and invoice ${invoiceId} not found`,
+      'RESERVATION_NOT_FOUND',
+      404,
+    );
+  }
+}
+
 export class InsufficientCapacityError extends DomainError {
   constructor() {
     super('Insufficient program capacity', 'INSUFFICIENT_CAPACITY', 422);

@@ -84,6 +84,9 @@ $ curl -X POST http://localhost:3000/programs/00000000-0000-4000-8000-0000000000
 
 The bundled FX provider uses fixed example rates, not live market quotes. Replace
 the `FX_RATE_PROVIDER` binding with an external provider before production use.
+Invoice IDs accept only ASCII letters, digits, `.`, `_`, `:`, and `-`. An invoice
+can be reserved once per program; attempting to reserve it again after release
+returns `409 INVOICE_ALREADY_RELEASED`.
 
 For production, set `JWT_MODE=jwks`, `JWT_JWKS_URI`, `JWT_ISSUER`, and
 `JWT_AUDIENCE`. Local token issuance is disabled in this mode, and the guard

@@ -8,11 +8,15 @@ import {
 } from 'class-validator';
 
 export class ReserveReservationDto {
-  @ApiProperty({ example: 'invoice-2026-0042', maxLength: 255 })
+  @ApiProperty({
+    example: 'invoice-2026-0042',
+    maxLength: 255,
+    pattern: '^[A-Za-z0-9._:-]+$',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  @Matches(/\S/)
+  @Matches(/^[A-Za-z0-9._:-]+$/)
   invoiceId: string;
 
   @ApiProperty({

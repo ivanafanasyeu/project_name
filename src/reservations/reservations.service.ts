@@ -4,8 +4,10 @@ import { DataSource, Repository } from 'typeorm';
 import {
   AmountOutOfRangeError,
   InsufficientCapacityError,
+  InvoiceAlreadyReleasedError,
   ProgramNotFoundError,
   ReservationPayloadConflictError,
+  ReservationNotFoundError,
 } from '../common/domain-errors.js';
 import { CapacityMovementType } from '../database/capacity-movement.entity.js';
 import { Program } from '../database/program.entity.js';
@@ -87,8 +89,13 @@ export class ReservationsService {
           programId: program.id,
           invoiceId: request.invoiceId,
         });
+        if (!existing) {
+          throw new ReservationPayloadConflictError();
+        }
+        if (existing.status === ReservationStatus.RELEASED) {
+          throw new InvoiceAlreadyReleasedError();
+        }
         if (
-          !existing ||
           existing.originalAmountMinor !== request.amount ||
           existing.originalCurrency !== request.currency
         ) {
@@ -132,6 +139,76 @@ export class ReservationsService {
         id: reservationId,
       });
       return { reservation, created: true };
+    });
+  }
+
+  async release(programId: string, invoiceId: string): Promise<Reservation> {
+    return this.dataSource.transaction(async (manager) => {
+      const [releasedRows]: [
+        { id: string; reserved_amount_minor: string }[],
+        number,
+      ] = await manager.query(
+        `UPDATE "reservations"
+        SET "status" = $1,
+            "released_at" = now()
+        WHERE "program_id" = $2
+          AND "invoice_id" = $3
+          AND "status" = $4
+        RETURNING "id", "reserved_amount_minor"`,
+        [
+          ReservationStatus.RELEASED,
+          programId,
+          invoiceId,
+          ReservationStatus.RESERVED,
+        ],
+      );
+
+      if (releasedRows.length === 0) {
+        const existing = await manager.findOneBy(Reservation, {
+          programId,
+          invoiceId,
+        });
+        if (!existing) {
+          throw new ReservationNotFoundError(programId, invoiceId);
+        }
+        if (existing.status === ReservationStatus.RELEASED) {
+          return existing;
+        }
+
+        throw new Error(
+          `Reservation ${existing.id} could not be released from status ${existing.status}`,
+        );
+      }
+
+      const { id: reservationId, reserved_amount_minor: amountMinor } =
+        releasedRows[0];
+      const [, affectedCount]: [unknown[], number] = await manager.query(
+        `UPDATE "programs"
+        SET "reserved_minor" = "reserved_minor" - $1::bigint,
+            "updated_at" = now()
+        WHERE "id" = $2
+          AND "reserved_minor" >= $1::bigint
+        RETURNING "id"`,
+        [amountMinor, programId],
+      );
+      if (affectedCount === 0) {
+        throw new Error(
+          `Capacity invariant violated while releasing reservation ${reservationId}`,
+        );
+      }
+
+      await manager.query(
+        `INSERT INTO "capacity_movements" (
+          "program_id",
+          "reservation_id",
+          "type",
+          "amount_minor"
+        )
+        VALUES ($1, $2, $3, $4)`,
+        [programId, reservationId, CapacityMovementType.RELEASE, amountMinor],
+      );
+
+      return manager.findOneByOrFail(Reservation, { id: reservationId });
     });
   }
 }
