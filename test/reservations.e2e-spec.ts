@@ -1,4 +1,3 @@
-import { ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -7,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { CapacityMovement } from '../src/database/capacity-movement.entity.js';
 import { Program } from '../src/database/program.entity.js';
 import { Reservation } from '../src/database/reservation.entity.js';
+import { configureApp } from '../src/configure-app.js';
 import type { ReserveReservationDto } from '../src/reservations/reserve-reservation.dto.js';
 
 const authEnvironment = {
@@ -46,13 +46,7 @@ describe('Reservations (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    configureApp(app);
     await app.init();
     await app.listen(0);
     server = app.getHttpServer();

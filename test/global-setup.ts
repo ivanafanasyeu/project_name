@@ -7,9 +7,8 @@ export default async function globalSetup() {
     );
   }
 
-  const { default: dataSource } = await import(
-    '../dist/database/data-source.js'
-  );
+  const { default: dataSource } =
+    await import('../dist/database/data-source.js');
   if (dataSource.options.database !== TEST_DATABASE_NAME) {
     throw new Error('Refusing to reset a non-test database');
   }
