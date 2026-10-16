@@ -11,3 +11,8 @@ up-db:
 
 token:
 	@node scripts/dev-token.mjs
+
+reset:
+	npm run migration:revert
+	npm run migration:run
+	npm run seed
