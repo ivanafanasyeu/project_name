@@ -67,12 +67,11 @@ $ pnpm run start:dev
 $ make token
 ```
 
+`00000000-0000-4000-8000-000000000001` - seed reservation ID
+
 `make token` prints a local development JWT without making an HTTP token request.
-Use it as a bearer token for `/auth/protected`, which requires the `api:read`
 scope. `/health` is public. The seed command creates a USD program
-with a $10,000,000 limit (1,000,000,000 cents) and prints its ID. Check its
-capacity at `GET /programs/00000000-0000-4000-8000-000000000001/capacity` with
-the bearer token.
+with a $10,000,000 limit (1,000,000,000 cents) and prints its ID.
 
 Create a reservation using the same token:
 
