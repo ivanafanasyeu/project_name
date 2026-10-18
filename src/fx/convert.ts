@@ -10,6 +10,10 @@ const currencyExponents: Readonly<Record<string, number>> = {
   KWD: 3,
 };
 
+export function isSupportedCurrency(currency: string): boolean {
+  return currencyExponents[currency] !== undefined;
+}
+
 function parseRate(rate: string): { numerator: bigint; denominator: bigint } {
   const match = /^(\d+)(?:\.(\d+))?$/.exec(rate);
   if (!match) {

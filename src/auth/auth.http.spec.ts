@@ -14,9 +14,6 @@ describe('Auth routes', () => {
     JWT_SECRET: 'test-secret-for-http-suite',
     JWT_ISSUER: 'test-issuer',
     JWT_AUDIENCE: 'test-audience',
-    JWT_SCOPES: 'api:read',
-    CLIENT_ID: 'http-test-client',
-    CLIENT_SECRET: 'http-test-secret',
   };
 
   beforeAll(async () => {
@@ -52,24 +49,8 @@ describe('Auth routes', () => {
     await request(app.getHttpServer()).get('/auth/protected').expect(401);
   });
 
-  it('issues a dev token and authorizes requests with the required scope', async () => {
-    const tokenResponse = await request(app.getHttpServer())
-      .post('/auth/token')
-      .send({
-        client_id: authConfig.CLIENT_ID,
-        client_secret: authConfig.CLIENT_SECRET,
-      })
-      .expect(201);
-
-    await request(app.getHttpServer())
-      .get('/auth/protected')
-      .set('Authorization', `Bearer ${tokenResponse.body.access_token}`)
-      .expect(200)
-      .expect({
-        authenticated: true,
-        clientId: authConfig.CLIENT_ID,
-        scopes: ['api:read'],
-      });
+  it('does not expose a local token issuance endpoint', async () => {
+    await request(app.getHttpServer()).post('/auth/token').expect(404);
   });
 
   it('rejects authenticated requests without the required scope', async () => {

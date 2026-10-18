@@ -1,28 +1,30 @@
-const clientId = process.env.CLIENT_ID;
-const clientSecret = process.env.CLIENT_SECRET;
+import { JwtService } from '@nestjs/jwt';
 
-if (!clientId || !clientSecret) {
-	throw new Error('Set CLIENT_ID and CLIENT_SECRET in your environment');
+const isProduction = process.env.NODE_ENV === 'production';
+const jwtMode = process.env.JWT_MODE ?? (isProduction ? 'jwks' : 'dev');
+if (isProduction || jwtMode !== 'dev') {
+	throw new Error('Local token generation requires JWT_MODE=dev outside production');
 }
 
-const port = process.env.PORT ?? '3000';
-const tokenUrl = `http://localhost:${port}/auth/token`;
-const response = await fetch(tokenUrl, {
-	method: 'POST',
-	headers: { 'content-type': 'application/json' },
-	body: JSON.stringify({
-		client_id: clientId,
-		client_secret: clientSecret,
-	}),
+const secret = process.env.JWT_SECRET ?? 'local-development-only-change-me';
+const issuer = process.env.JWT_ISSUER ?? 'http://localhost:3000';
+const audience = process.env.JWT_AUDIENCE ?? 'project-api';
+const clientId = process.env.CLIENT_ID ?? 'local-client';
+const scopes = process.env.JWT_SCOPES ?? 'api:read';
+const jwtService = new JwtService({
+	secret,
+	signOptions: {
+		algorithm: 'HS256',
+		issuer,
+		audience,
+		expiresIn: 900,
+	},
 });
-const result = await response.json();
 
-if (!response.ok) {
-	throw new Error(result.message ?? `Token request failed (${response.status})`);
-}
+const token = await jwtService.signAsync({
+	sub: clientId,
+	client_id: clientId,
+	scope: scopes,
+});
 
-if (typeof result.access_token !== 'string') {
-	throw new Error('Token endpoint returned no access_token');
-}
-
-console.log(result.access_token);
+console.log(token);

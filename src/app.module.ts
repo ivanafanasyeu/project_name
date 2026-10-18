@@ -8,6 +8,7 @@ import { DomainExceptionFilter } from './common/domain-exception.filter.js';
 import { DatabaseModule } from './database/database.module.js';
 import { ProgramsModule } from './programs/programs.module.js';
 import { ReservationsModule } from './reservations/reservations.module.js';
+import { TreasuryModule } from './treasury/treasury.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ReservationsModule } from './reservations/reservations.module.js';
     AuthModule,
     ProgramsModule,
     ReservationsModule,
+    TreasuryModule,
   ],
   controllers: [AppController],
   providers: [

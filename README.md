@@ -55,8 +55,8 @@ and truncation. Its movement enum currently supports `RESERVE` and `RELEASE`;
 
 ## Authentication, Seeding data, FX rates
 
-Copy `.env.example` to `.env` and set a local `JWT_SECRET`, `CLIENT_ID`, and
-`CLIENT_SECRET`. Start the database and app, then request a development token:
+Copy `.env.example` to `.env` and set a local `JWT_SECRET`. Start the database
+and app:
 
 ```bash
 $ cp .env.example .env
@@ -67,8 +67,9 @@ $ pnpm run start:dev
 $ make token
 ```
 
-Use the printed token as a bearer token for `/auth/protected`; it requires the
-`api:read` scope. `/health` is public. The seed command creates a USD program
+`make token` prints a local development JWT without making an HTTP token request.
+Use it as a bearer token for `/auth/protected`, which requires the `api:read`
+scope. `/health` is public. The seed command creates a USD program
 with a $10,000,000 limit (1,000,000,000 cents) and prints its ID. Check its
 capacity at `GET /programs/00000000-0000-4000-8000-000000000001/capacity` with
 the bearer token.
@@ -97,3 +98,5 @@ accepts only RS256 tokens verified against the configured JWKS.
 The Swagger UI is available at `http://localhost:3000/api` while the app is running.
 Use **Authorize** to enter a bearer token for protected endpoints. The OpenAPI document
 is available at `http://localhost:3000/api-json`.
+
+For Kafka, the host app uses `localhost:9092`; an app inside Docker would use `kafka:19092`.

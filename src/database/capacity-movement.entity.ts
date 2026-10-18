@@ -16,6 +16,7 @@ import {
 export enum CapacityMovementType {
   RESERVE = 'RESERVE',
   RELEASE = 'RELEASE',
+  RECONCILE = 'RECONCILE',
 }
 
 @Entity({ name: 'capacity_movements' })
@@ -30,12 +31,12 @@ export class CapacityMovement {
   @JoinColumn({ name: 'program_id' })
   program: Program;
 
-  @Column({ name: 'reservation_id', type: 'uuid' })
-  reservationId: string;
+  @Column({ name: 'reservation_id', type: 'uuid', nullable: true })
+  reservationId: string | null;
 
-  @ManyToOne(() => Reservation, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => Reservation, { nullable: true, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'reservation_id' })
-  reservation: Reservation;
+  reservation: Reservation | null;
 
   @Column({
     type: 'enum',
